@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main>
+    <div class="wrap">
+      <h1 id="page-title"></h1>
+      <div class="intro" id="intro"></div>
+      <div id="socials"></div>
+    </div>
+
+    <div class="wrap">
+      <h2>Posts</h2>
+      <div id="posts-preview"></div>
+    </div>
+
+    <div class="wrap">
+      <h2>Projects</h2>
+      <div id="projects-preview"></div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="assets/js/source-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    DATA_READY.then(() => {
+    mount("header", renderHeader(""));
+    updateThemeIcon();
+    document.getElementById("page-title").innerHTML = `${SITE.title} <a href="#" style="text-decoration:none;color:var(--accent);font-size:1.2rem;" aria-label="RSS feed">⟆</a>`;
+
+    mount("intro", renderIntro());
+
+    mount("socials", renderSocials());
+
+    const homePosts = selectHomepageItems(POSTS, HOME.postsLimit);
+    const homeProjects = selectHomepageItems(PROJECTS, HOME.projectsLimit);
+
+    mount(
+      "posts-preview",
+      `<div class="preview-list">${homePosts.length
+        ? homePosts.map(renderPostItem).join("")
+        : `<p class="empty-message">No posts yet — check back soon.</p>`}</div>
+       <div class="section-more-wrap"><a class="all-posts-link section-more" href="posts.html">All Posts ${ICONS.arrowRight}</a></div>`
+    );
+
+    mount(
+      "projects-preview",
+      renderProjectList(homeProjects) +
+        `<div class="section-more-wrap"><a class="all-posts-link section-more" href="projects.html">All Projects ${ICONS.arrowRight}</a></div>`
+    );
+    mount("footer", renderFooter());
+      }).catch((error) => {
+      console.error(error);
+    });
+</script>
+</body>
+</html>

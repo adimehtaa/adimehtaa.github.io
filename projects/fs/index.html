@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects · Portfolio</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate" type="application/rss+xml" title="Aditya Mehta RSS Feed" href="/feed.xml">
+</head>
+
+<body>
+    <div id="header"></div>
+    <main>
+        <div class="wrap">
+            <div class="crumbs"><a href="/">Home</a> &gt; Projects</div>
+            <h1>Projects</h1>
+            <p style="color:var(--muted);font-style:italic;margin-top:-0.5rem;">Selected systems, applications, and
+                experiments.</p>
+            <div id="project-filters"></div>
+            <div id="projects-list" style="margin-top:2rem;"></div>
+        </div>
+    </main>
+    <div id="footer"></div>
+    <script src="/assets/js/source-data.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script>DATA_READY.then(() => { mount("header", renderHeader("projects")); updateThemeIcon(); const filter = getProjectFilterFromUrl(); mount("project-filters", renderProjectFilters(filter)); mount("projects-list", renderProjectList(getProjectsForFilter(filter))); mount("footer", renderFooter()); }).catch(console.error);</script>
+</body>
+
+</html>

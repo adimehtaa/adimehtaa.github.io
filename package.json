@@ -1,0 +1,12 @@
+{
+    "name": "adimehta-portfolio",
+    "private": true,
+    "scripts": {
+        "format": "biome format --write .",
+        "lint": "biome lint .",
+        "check": "biome check ."
+    },
+    "devDependencies": {
+        "@biomejs/biome": "latest"
+    }
+}

@@ -5,7 +5,7 @@
    ============================================================ */
 
 const SITE = {
-    title: "adimehta.com",
+    title: "adimehtaa",
     name: "Aditya Mehta",
     role: "Backend Engineer",
     roleUrl: "https://www.inflibnet.ac.in",
@@ -18,8 +18,10 @@ const SITE = {
 
 const SOCIALS = [
     { icon: "mail", url: "mailto:adityamehta242@gmail.com", label: "Email" },
-    { icon: "github", url: "#", label: "GitHub" },
-    { icon: "linkedin", url: "#", label: "LinkedIn" },
+    { icon: "github", url: "https://github.com/adimehtaa", label: "GitHub" },
+    { icon: "linkedin", url: "https://www.linkedin.com/in/adimehtaa/", label: "LinkedIn" },
+    {icon: "mastodon", url: "https://mastodon.social/@adimehta", label: "Mastodon"},
+    {icon: "x", url: "https://x.com/adimehtaa", label: "X"}
 ];
 
 const EXPERIENCE = [
@@ -99,10 +101,9 @@ const HOME = {
  * The actual content no longer lives in this file.
  */
 const CONTENT_FILES = {
-    posts: ["my-post.js", "my-post1.js"],
+    posts: [],
     projects: [
         "distributed-notification-engine.js",
-        "restaurant-review-platform.js",
     ],
 };
 

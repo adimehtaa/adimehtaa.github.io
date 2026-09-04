@@ -9,7 +9,7 @@ window.PROJECTS.push({
     image: "/assets/images/distributed-notification-engine.png",
     links: {
         live: "",
-        github: "#",
+        github: "https://github.com/adimehtaa/distributed-notification-engine",
     },
     tech: [
         "Java 21",

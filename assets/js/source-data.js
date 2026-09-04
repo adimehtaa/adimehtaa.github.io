@@ -101,7 +101,7 @@ const HOME = {
  * The actual content no longer lives in this file.
  */
 const CONTENT_FILES = {
-    posts: [],
+    posts: ["spring-boot-production-grade-setup.js"],
     projects: [
         "distributed-notification-engine.js",
     ],

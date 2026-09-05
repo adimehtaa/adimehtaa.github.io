@@ -1,25 +1,46 @@
 <!doctype html>
 <html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Post · Portfolio</title>
+      <link rel="stylesheet" href="/assets/css/style.css" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+   </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post · Portfolio</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-</head>
-
-<body>
-    <div id="header"></div>
-    <main>
-        <div class="wrap">
+   <body>
+      <div id="header"></div>
+      <main>
+         <div class="wrap">
             <div id="post-page"></div>
-        </div>
-    </main>
-    <div id="footer"></div>
-    <script src="/assets/js/source-data.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script>DATA_READY.then(() => { const slug = new URLSearchParams(location.search).get("slug"); const post = POSTS.find(p => p.slug === slug); const page = post ? { title: post.title, body: `<article class="post-page"><h1>${escapeHtml(post.title)}</h1><div class="post-meta">${ICONS.calendar}<em>${escapeHtml(getPostDateText(post))}</em></div><div class="post-content">${post.body || ""}</div></article>` } : { title: "Post not found", body: "<h1>Post not found</h1><p>There is no post with this URL.</p>" }; document.title = `${page.title} · Portfolio`; mount("header", renderHeader("posts")); updateThemeIcon(); mount("post-page", `<div class="crumbs"><a href="/">Home</a> &gt; <a href="/posts">Posts</a></div>${page.body}`); mount("footer", renderFooter()); }).catch(console.error);</script>
-</body>
-
+         </div>
+      </main>
+      <div id="footer"></div>
+      <script src="/assets/js/source-data.js"></script>
+      <script src="/assets/js/main.js"></script>
+      <script>
+         DATA_READY.then(() => {
+            const slug = new URLSearchParams(location.search).get("slug");
+            const post = POSTS.find((p) => p.slug === slug);
+            const page = post
+               ? {
+                    title: post.title,
+                    body: `<article class="post-page"><h1>${escapeHtml(post.title)}</h1><div class="post-meta">${ICONS.calendar}<em>${escapeHtml(getPostDateText(post))}</em></div><div class="post-content">${post.body || ""}</div></article>`,
+                 }
+               : {
+                    title: "Post not found",
+                    body: "<h1>Post not found</h1><p>There is no post with this URL.</p>",
+                 };
+            document.title = `${page.title} · Portfolio`;
+            mount("header", renderHeader("posts"));
+            updateThemeIcon();
+            mount(
+               "post-page",
+               `<div class="crumbs"><a href="/">Home</a> &gt; <a href="/posts">Posts</a></div>${page.body}`,
+            );
+            addCodeCopyButtons(document.querySelector(".post-content"));
+            mount("footer", renderFooter());
+         }).catch(console.error);
+      </script>
+   </body>
 </html>

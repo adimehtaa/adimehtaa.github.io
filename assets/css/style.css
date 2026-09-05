@@ -748,3 +748,43 @@ body.lightbox-open {
     height: 20px;
 }
 
+.project-content pre,
+.post-content pre {
+    position: relative;
+    overflow-x: auto;
+    padding: 1rem;
+    padding-top: 2.5rem; /* room for the button */
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 6px;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.25rem;
+    display: inline-flex;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.copy-btn svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+}
+
+.copy-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.copy-btn.copied {
+    color: #2e7d32;
+    border-color: #2e7d32;
+}

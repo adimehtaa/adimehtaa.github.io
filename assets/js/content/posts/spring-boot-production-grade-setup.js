@@ -1,514 +1,1023 @@
-window.POSTS.push({
-    slug: "spring-boot-production-grade-setup",
-    title: "Spring Boot Production-Grade Setup: A Practical Guide",
-    date: "September 4, 2026",
-    summary: "A practical checklist for building, securing, monitoring, and deploying a production-grade Spring Boot application.",
+POSTS.push({
+    slug: "spring-boot-project-foundation",
+    title: "Spring Boot Project Foundation: From Spring Initializr to a Clean Development Setup",
+    date: "September 5, 2026",
+    summary: "Build a clean Spring Boot project foundation from Spring Initializr with Maven, Java 21, externalized configuration, Checkstyle, Spotless, dependency security, testing, and Git conventions.",
     featured: true,
-    body: `
-        <p>
-            A Spring Boot application can be running successfully on your laptop and still
-            be far from production-ready. A production-grade application needs more than
-            working business logic—it needs secure configuration, observability, reliable
-            database management, graceful failure handling, health checks, and a deployment
-            strategy that makes failures recoverable.
-        </p>
+    body: `<p>
+    A Spring Boot project can be generated in a few seconds, but generating a project
+    and building a maintainable project are two different things.
+</p>
 
-        <h2>1. Use the Right Spring Boot Baseline</h2>
+<p>
+    In this guide, we will start from Spring Initializr and build the foundation step
+    by step. We will keep the project intentionally simple and introduce each tool only
+    when it has a clear purpose.
+</p>
 
-        <p>
-            Start with a currently supported Spring Boot release and a supported Java LTS
-            version. Avoid building a new production service on an outdated or end-of-life
-            Java or Spring Boot version.
-        </p>
+<p>
+    The goal of this phase is not to add every tool commonly seen in production
+    projects. The goal is to create a clean development foundation that is easy to
+    understand, maintain, test, and maintain.
+</p>
 
-        <p>
-            Keep the dependency tree as small as practical. Every dependency increases the
-            application's attack surface and maintenance cost.
-        </p>
+<h2>What We Will Build</h2>
 
-        <h2>2. Keep Configuration Outside the Application</h2>
+<p>
+    By the end of this phase, the project will have:
+</p>
 
-        <p>
-            Production configuration should not be hard-coded into Java classes or committed
-            as environment-specific values.
-        </p>
+<ul>
+    <li>Java 21</li>
+    <li>Spring Boot 4.1.1</li>
+    <li>Maven and Maven Wrapper</li>
+    <li>Clean application configuration</li>
+    <li>Externalized configuration support</li>
+    <li>Secret protection</li>
+    <li>Git ignore rules</li>
+    <li>Checkstyle</li>
+    <li>Spotless formatting</li>
+    <li>Dependency vulnerability scanning</li>
+    <li>Basic automated testing</li>
+    <li>Simple Git conventions</li>
+</ul>
 
-        <p>
-            A typical configuration strategy is:
-        </p>
+<p>
+    Some commonly used tools are deliberately not added. We will explain why as we
+    progress.
+</p>
 
-        <ul>
-            <li>Use <code>application.yml</code> for safe application defaults.</li>
-            <li>Use environment variables or an external configuration system for deployment-specific values.</li>
-            <li>Keep secrets such as database passwords, API keys, and signing keys outside Git.</li>
-            <li>Use Spring profiles only when you genuinely need environment-specific configuration.</li>
-        </ul>
+<h2>1. Start with Spring Initializr</h2>
 
-        <p>
-            For example:
-        </p>
+<p>
+    <strong>Required:</strong> Start the project with Spring Initializr rather than
+    manually creating the initial Maven and Spring Boot structure.
+</p>
 
-        <pre><code>spring:
+<p>
+    Spring Initializr provides a convenient way to generate a JVM project with choices
+    such as the build system, language, packaging, Java version, Spring Boot version,
+    and dependencies.
+</p>
+
+<p>
+    Open Spring Initializr and create a new Maven-based Java project.
+</p>
+
+<h3>Project Settings</h3>
+
+<ul>
+    <li><strong>Project:</strong> Maven</li>
+    <li><strong>Language:</strong> Java</li>
+    <li><strong>Spring Boot:</strong> 4.1.1</li>
+    <li><strong>Packaging:</strong> Jar</li>
+    <li><strong>Java:</strong> 21</li>
+</ul>
+
+<p>
+    For this foundation project, we do not need to select a large collection of
+    dependencies from Initializr.
+</p>
+
+<p>
+    Start with the basic Spring Boot project and its standard test support. Additional
+    dependencies will be introduced later when the project actually requires them.
+</p>
+
+<h2>2. Understand the Generated Project</h2>
+
+<p>
+    After downloading and extracting the project, the initial structure should look
+    similar to:
+</p>
+
+<pre><code>demo-setup/
+├── .mvn/
+│   └── wrapper/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   └── resources/
+│   └── test/
+│       └── java/
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+└── ...</code></pre>
+
+<p>
+    The important files are:
+</p>
+
+<ul>
+    <li><code>pom.xml</code> — Maven project configuration and dependencies.</li>
+    <li><code>mvnw</code> — Maven Wrapper for Linux and macOS.</li>
+    <li><code>mvnw.cmd</code> — Maven Wrapper for Windows.</li>
+    <li><code>src/main/java</code> — Application source code.</li>
+    <li><code>src/main/resources</code> — Application resources and configuration.</li>
+    <li><code>src/test/java</code> — Automated tests.</li>
+</ul>
+
+<h2>3. Run the Generated Application First</h2>
+
+<p>
+    Before changing anything, run the generated project.
+</p>
+
+<p>
+    <strong>Required:</strong> Verify the generated baseline before adding project
+    standards.
+</p>
+
+<pre><code>./mvnw spring-boot:run</code></pre>
+
+<p>
+    This starts the Spring Boot application using Maven.
+</p>
+
+<p>
+    On Windows, use:
+</p>
+
+<pre><code>mvnw.cmd spring-boot:run</code></pre>
+
+<p>
+    Starting from a known working baseline is important. If something fails after we
+    make changes, we can determine whether the problem was already present or introduced
+    by our configuration.
+</p>
+
+<h2>4. Understand Maven and the Maven Wrapper</h2>
+
+<p>
+    <strong>Maven — Required.</strong>
+</p>
+
+<p>
+    Maven manages the project's build lifecycle and dependencies.
+</p>
+
+<p>
+    <strong>Maven Wrapper — Required.</strong>
+</p>
+
+<p>
+    The Maven Wrapper allows the project to invoke its configured Maven version without
+    requiring every developer to install the same Maven version globally.
+</p>
+
+<p>
+    The Spring Boot Maven Plugin also provides support for running Spring Boot
+    applications and packaging executable JAR files.
+</p>
+
+<h3>Useful Maven Commands</h3>
+
+<pre><code>./mvnw test</code></pre>
+
+<p>
+    Runs the automated tests.
+</p>
+
+<pre><code>./mvnw clean</code></pre>
+
+<p>
+    Removes generated build output from the <code>target</code> directory.
+</p>
+
+<pre><code>./mvnw compile</code></pre>
+
+<p>
+    Compiles the main application source code.
+</p>
+
+<pre><code>./mvnw package</code></pre>
+
+<p>
+    Packages the application into a JAR artifact.
+</p>
+
+<pre><code>./mvnw clean package</code></pre>
+
+<p>
+    Performs a clean build and creates a fresh application artifact.
+</p>
+
+<pre><code>./mvnw clean verify</code></pre>
+
+<p>
+    Performs the complete Maven verification lifecycle and becomes the main quality
+    gate for this project.
+</p>
+
+<h2>5. Configure Application Properties</h2>
+
+<p>
+    <strong>Recommended:</strong> Use YAML for application configuration.
+</p>
+
+<p>
+    The generated project can use <code>application.properties</code>. For this project,
+    we use <code>application.yml</code> because YAML becomes easier to read when the
+    configuration grows into nested sections.
+</p>
+
+<p>
+    Create:
+</p>
+
+<pre><code>src/main/resources/application.yml</code></pre>
+
+<p>
+    Add:
+</p>
+
+<pre><code>spring:
+  application:
+    name: demo-setup</code></pre>
+
+<p>
+    Notice that the configuration is intentionally small.
+</p>
+
+<p>
+    We do not add database, security, logging, server, or other configuration simply
+    because those settings are common in production applications.
+</p>
+
+<h2>6. Externalize Environment-Specific Configuration</h2>
+
+<p>
+    <strong>Recommended:</strong> Keep deployment-specific values outside the application
+    code.
+</p>
+
+<p>
+    The application should not require Java source-code changes just because it is being
+    deployed to another environment.
+</p>
+
+<p>
+    For example, when the database is introduced later, configuration can use
+    environment variables:
+</p>
+
+<pre><code>spring:
   datasource:
     url: \${DB_URL}
     username: \${DB_USERNAME}
-    password: \${DB_PASSWORD}
+    password: \${DB_PASSWORD}</code></pre>
 
-  jpa:
-    open-in-view: false
+<p>
+    This allows the same application artifact to be used with different environment
+    values.
+</p>
 
-server:
-  shutdown: graceful</code></pre>
+<h2>7. Protect Secrets</h2>
 
-        <p>
-            The important principle is simple: <strong>configuration changes should not
-            require rebuilding the application.</strong>
-        </p>
+<p>
+    <strong>Required:</strong> Never commit real secrets to source control.
+</p>
 
-        <h2>3. Use Database Migrations</h2>
+<p>
+    Examples of secrets include:
+</p>
 
-        <p>
-            Do not depend on Hibernate's automatic schema creation in production.
-            Database structure should be versioned and deployed in a controlled way.
-        </p>
+<ul>
+    <li>Database passwords</li>
+    <li>API keys</li>
+    <li>JWT signing keys</li>
+    <li>Access tokens</li>
+    <li>Cloud credentials</li>
+    <li>Private certificates</li>
+</ul>
 
-        <p>
-            Tools such as Flyway or Liquibase can be used to manage database migrations.
-        </p>
+<p>
+    We use <code>.env.example</code> to document expected environment variables without
+    storing real values.
+</p>
 
-        <pre><code>spring:
-  jpa:
-    hibernate:
-      ddl-auto: validate</code></pre>
+<pre><code># Example only.
+# Never commit real credentials.
 
-        <p>
-            The application should validate that the expected schema exists rather than
-            silently modifying production tables.
-        </p>
+DB_URL=
+DB_USERNAME=
+DB_PASSWORD=</code></pre>
 
-        <h2>4. Production Logging</h2>
+<p>
+    The real values belong in the environment or an appropriate secret-management
+    mechanism.
+</p>
 
-        <p>
-            Logs should help answer three questions quickly:
-        </p>
+<h2>8. Configure .gitignore</h2>
 
-        <ol>
-            <li>What happened?</li>
-            <li>Which request or operation caused it?</li>
-            <li>What was the impact?</li>
-        </ol>
+<p>
+    <strong>Required:</strong> Prevent generated files, local configuration, IDE files,
+    and secrets from being committed.
+</p>
 
-        <p>
-            Prefer structured logging, especially when logs are consumed by systems such as
-            Elasticsearch, OpenSearch, Loki, Splunk, or cloud logging platforms.
-        </p>
+<p>
+    A basic configuration includes:
+</p>
 
-        <p>
-            Avoid logging passwords, access tokens, session identifiers, authorization
-            headers, or other sensitive information.
-        </p>
+<pre><code># Maven
+target/
 
-        <h2>5. Add Actuator and Health Checks</h2>
+# IDE
+.idea/
+.vscode/
+*.iml
 
-        <p>
-            Spring Boot Actuator provides endpoints useful for monitoring and operations.
-            For production applications, health information is particularly important for
-            load balancers and container orchestrators.
-        </p>
+# Logs
+*.log
 
-        <pre><code>&lt;dependency&gt;
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Local Spring configuration
+application-local.yml
+application-local.yaml
+application-local.properties</code></pre>
+
+<p>
+    The normal <code>application.yml</code> remains committed because it contains
+    application defaults rather than private credentials.
+</p>
+
+<h2>9. Add Checkstyle</h2>
+
+<p>
+    <strong>Recommended:</strong> Add Checkstyle for basic coding-standard validation.
+</p>
+
+<p>
+    Checkstyle helps identify inconsistent naming, imports, and other basic source-code
+    problems.
+</p>
+
+<p>
+    We intentionally use a small configuration rather than creating a huge list of
+    restrictions.
+</p>
+
+<p>
+    Add the Checkstyle Maven Plugin to the <code>&lt;plugins&gt;</code> section:
+</p>
+
+<pre><code>&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-checkstyle-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.6.0&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;configLocation&gt;checkstyle.xml&lt;/configLocation&gt;
+        &lt;consoleOutput&gt;true&lt;/consoleOutput&gt;
+        &lt;failsOnError&gt;true&lt;/failsOnError&gt;
+        &lt;violationSeverity&gt;warning&lt;/violationSeverity&gt;
+    &lt;/configuration&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;checkstyle&lt;/id&gt;
+            &lt;phase&gt;verify&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+
+<p>
+    Create <code>checkstyle.xml</code> in the project root:
+</p>
+
+<pre><code>&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd"&gt;
+
+&lt;module name="Checker"&gt;
+
+    &lt;property name="charset" value="UTF-8"/&gt;
+
+    &lt;module name="TreeWalker"&gt;
+
+        &lt;!-- Naming --&gt;
+        &lt;module name="TypeName"/&gt;
+        &lt;module name="MethodName"/&gt;
+        &lt;module name="ParameterName"/&gt;
+        &lt;module name="LocalVariableName"/&gt;
+        &lt;module name="MemberName"/&gt;
+        &lt;module name="ConstantName"/&gt;
+
+        &lt;!-- Imports --&gt;
+        &lt;module name="AvoidStarImport"/&gt;
+        &lt;module name="UnusedImports"/&gt;
+        &lt;module name="RedundantImport"/&gt;
+
+        &lt;!-- Basic code quality --&gt;
+        &lt;module name="EmptyBlock"/&gt;
+        &lt;module name="EmptyStatement"/&gt;
+        &lt;module name="MissingSwitchDefault"/&gt;
+
+    &lt;/module&gt;
+&lt;/module&gt;</code></pre>
+
+<p>
+    Checkstyle can then be run independently:
+</p>
+
+<pre><code>./mvnw checkstyle:check</code></pre>
+
+<p>
+    It is also part of the Maven verification lifecycle.
+</p>
+
+<h2>10. Add Spotless Formatting</h2>
+
+<p>
+    <strong>Recommended:</strong> Use Spotless to automatically format Java source code.
+</p>
+
+<p>
+    Checkstyle and Spotless have different responsibilities.
+</p>
+
+<ul>
+    <li><strong>Spotless:</strong> Formats the source code.</li>
+    <li><strong>Checkstyle:</strong> Checks coding standards.</li>
+</ul>
+
+<p>
+    Add Spotless to <code>pom.xml</code>:
+</p>
+
+<pre><code>&lt;plugin&gt;
+    &lt;groupId&gt;com.diffplug.spotless&lt;/groupId&gt;
+    &lt;artifactId&gt;spotless-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.46.1&lt;/version&gt;
+
+    &lt;configuration&gt;
+        &lt;java&gt;
+            &lt;googleJavaFormat&gt;
+                &lt;version&gt;1.28.0&lt;/version&gt;
+            &lt;/googleJavaFormat&gt;
+
+            &lt;removeUnusedImports/&gt;
+        &lt;/java&gt;
+    &lt;/configuration&gt;
+
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;spotless-check&lt;/id&gt;
+            &lt;phase&gt;verify&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+
+<p>
+    Apply formatting with:
+</p>
+
+<pre><code>./mvnw spotless:apply</code></pre>
+
+<p>
+    Check formatting without changing files:
+</p>
+
+<pre><code>./mvnw spotless:check</code></pre>
+
+<p>
+    We do not need multiple Java formatting tools.
+</p>
+
+<h2>11. Dependency Vulnerability Scanning</h2>
+
+<p>
+    <strong>Optional:</strong> Dependency vulnerability scanning.
+</p>
+
+<p>
+    A third-party dependency can contain a known security vulnerability even when our
+    own application code is secure.
+</p>
+
+<p>
+    For this project, we use OWASP Dependency-Check as an optional security check.
+</p>
+
+<p>
+    Add the following Maven plugin:
+</p>
+
+<pre><code>&lt;!-- OWASP Dependency-Check: Scans project dependencies for known vulnerabilities --&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.owasp&lt;/groupId&gt;
+    &lt;artifactId&gt;dependency-check-maven&lt;/artifactId&gt;
+    &lt;version&gt;12.1.8&lt;/version&gt;
+
+    &lt;configuration&gt;
+        &lt;failBuildOnCVSS&gt;7&lt;/failBuildOnCVSS&gt;
+        &lt;format&gt;HTML&lt;/format&gt;
+        &lt;outputDirectory&gt;\${project.build.directory}/dependency-check&lt;/outputDirectory&gt;
+    &lt;/configuration&gt;
+
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;dependency-check&lt;/id&gt;
+            &lt;phase&gt;verify&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+
+<p>
+    The scan can also be run directly:
+</p>
+
+<pre><code>./mvnw dependency-check:check</code></pre>
+
+<p>
+    The generated report is placed under:
+</p>
+
+<pre><code>target/dependency-check/</code></pre>
+
+<p>
+    The configured CVSS value of <code>7</code> is a project policy choice. It should
+    not be treated as a universal security threshold.
+</p>
+
+<p>
+    If a vulnerability is reported, do not immediately suppress it. First determine
+    whether the dependency can be upgraded, replaced, or otherwise safely addressed.
+</p>
+
+<h2>12. Dependency Update Strategy</h2>
+
+<p>
+    <strong>Optional:</strong> A formal automated dependency-update system.
+</p>
+
+<p>
+    Dependencies should still be kept reasonably up to date because updates can contain
+    security fixes, bug fixes, compatibility improvements, and performance improvements.
+</p>
+
+<p>
+    For this project, we do not introduce another dependency-management tool.
+</p>
+
+<p>
+    Instead, use a controlled update process:
+</p>
+
+<pre><code>Dependency update available
+    ↓
+Review the new version
+    ↓
+Update the dependency
+    ↓
+Run tests
+    ↓
+Run formatting and quality checks
+    ↓
+Run full verification
+    ↓
+Review security findings
+    ↓
+Commit the update</code></pre>
+
+<p>
+    When Spring Boot already manages a dependency version, avoid manually overriding
+    that version without a specific reason.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;dependency&gt;
     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 
-        <p>
-            Expose only the endpoints you actually need. Do not blindly expose every
-            actuator endpoint to the public internet.
-        </p>
+<p>
+    There is no need to manually specify a version when Spring Boot's dependency
+    management already provides one.
+</p>
 
-        <pre><code>management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
+<h3>Dependabot</h3>
 
-  endpoint:
-    health:
-      probes:
-        enabled: true</code></pre>
+<p>
+    <strong>Optional:</strong> GitHub Dependabot can be introduced later when the
+    repository is hosted on GitHub.
+</p>
 
-        <p>
-            In containerized environments, separate <strong>liveness</strong> from
-            <strong>readiness</strong>. A service can be alive while temporarily unable
-            to accept traffic.
-        </p>
+<p>
+    It can help identify dependency updates and create update pull requests, but it is
+    not necessary for the initial project foundation.
+</p>
 
-        <h2>6. Add Metrics and Observability</h2>
+<h2>13. Testing</h2>
 
-        <p>
-            Logs tell you what happened. Metrics help you understand how the system is
-            behaving over time.
-        </p>
+<p>
+    <strong>Required:</strong> Keep the basic test setup generated by Spring Initializr.
+</p>
 
-        <p>
-            Micrometer integrates Spring Boot applications with monitoring systems such as
-            Prometheus and other observability platforms.
-        </p>
+<p>
+    The standard Maven test directory is:
+</p>
 
-        <p>
-            At minimum, monitor:
-        </p>
+<pre><code>src/test/java/</code></pre>
 
-        <ul>
-            <li>Request rate</li>
-            <li>Error rate</li>
-            <li>Request latency</li>
-            <li>JVM memory usage</li>
-            <li>Garbage collection</li>
-            <li>CPU usage</li>
-            <li>Database connection pool usage</li>
-            <li>External API failures</li>
-        </ul>
+<p>
+    The project starts with a basic Spring Boot context test:
+</p>
 
-        <h2>7. Use Distributed Tracing for Distributed Systems</h2>
+<pre><code>@SpringBootTest
+class DemoSetupApplicationTests {
 
-        <p>
-            If your application communicates with multiple services, asynchronous systems,
-            or external APIs, request tracing becomes extremely valuable.
-        </p>
-
-        <p>
-            OpenTelemetry is a good foundation for collecting traces and propagating
-            correlation information across service boundaries.
-        </p>
-
-        <p>
-            The goal is to be able to follow a request such as:
-        </p>
-
-        <pre><code>API Gateway
-    |
-    +-- Order Service
-            |
-            +-- Payment Service
-            |
-            +-- Inventory Service
-            |
-            +-- PostgreSQL</code></pre>
-
-        <p>
-            When a request takes three seconds instead of 100 milliseconds, tracing should
-            make it possible to identify where that time was spent.
-        </p>
-
-        <h2>8. Secure the Application</h2>
-
-        <p>
-            Never treat Spring Security as an optional addition for an application that
-            exposes sensitive business functionality.
-        </p>
-
-        <p>
-            Depending on the application, security should address:
-        </p>
-
-        <ul>
-            <li>Authentication</li>
-            <li>Authorization</li>
-            <li>OAuth 2.0 / OpenID Connect where appropriate</li>
-            <li>CSRF protection where applicable</li>
-            <li>CORS configuration</li>
-            <li>Secure HTTP headers</li>
-            <li>Input validation</li>
-            <li>Rate limiting</li>
-            <li>Secret management</li>
-        </ul>
-
-        <p>
-            Do not put JWT signing keys or other credentials directly in
-            <code>application.yml</code> committed to source control.
-        </p>
-
-        <h2>9. Validate Input at the API Boundary</h2>
-
-        <p>
-            Validate incoming requests before they reach the business layer.
-            Jakarta Bean Validation provides a clean approach for common validation rules.
-        </p>
-
-        <pre><code>public record CreateUserRequest(
-    @NotBlank String name,
-    @Email @NotBlank String email
-) {}</code></pre>
-
-        <p>
-            Then validate the request at the controller boundary:
-        </p>
-
-        <pre><code>@PostMapping("/users")
-public ResponseEntity&lt;UserResponse&gt; createUser(
-        @Valid @RequestBody CreateUserRequest request) {
-
-    return ResponseEntity.ok(userService.create(request));
-}</code></pre>
-
-        <h2>10. Centralize Exception Handling</h2>
-
-        <p>
-            Avoid returning random exception messages from individual controllers.
-            Use a consistent error response format and centralized exception handling.
-        </p>
-
-        <p>
-            Spring's <code>@RestControllerAdvice</code> can be used to translate application
-            exceptions into appropriate HTTP responses.
-        </p>
-
-        <pre><code>@RestControllerAdvice
-class GlobalExceptionHandler {
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    ResponseEntity&lt;ProblemDetail&gt; handleNotFound(
-            ResourceNotFoundException ex) {
-
-        ProblemDetail problem =
-                ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-
-        problem.setDetail(ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(problem);
+    @Test
+    void contextLoads() {
     }
+
 }</code></pre>
 
-        <p>
-            A consistent error contract makes life easier for frontend applications,
-            mobile clients, and other services consuming your API.
-        </p>
+<p>
+    This test verifies that the Spring application context can start successfully.
+</p>
 
-        <h2>11. Configure Database Connection Pools Carefully</h2>
+<p>
+    Run it with:
+</p>
 
-        <p>
-            Spring Boot commonly uses HikariCP for JDBC connection pooling.
-            Do not assume that increasing the pool size always improves performance.
-        </p>
+<pre><code>./mvnw test</code></pre>
 
-        <p>
-            Too many database connections can actually make the database slower.
-            Pool sizing should be based on application concurrency, query performance,
-            database capacity, and measured workload.
-        </p>
+<p>
+    More meaningful unit, integration, database, controller, and security tests will
+    be introduced in later phases when those parts of the application exist.
+</p>
 
-        <pre><code>spring:
-  datasource:
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000</code></pre>
+<h2>14. Git Configuration</h2>
 
-        <p>
-            The numbers above are examples, not universal production defaults.
-            Benchmark your actual workload before tuning them.
-        </p>
+<p>
+    <strong>Required:</strong> Use Git for source control.
+</p>
 
-        <h2>12. Set Timeouts for External Calls</h2>
+<p>
+    <strong>Recommended:</strong> Keep commits focused and use a consistent commit
+    message format.
+</p>
 
-        <p>
-            One of the easiest ways to create a production incident is to call an external
-            service without appropriate timeouts.
-        </p>
+<h3>Commit Convention</h3>
 
-        <p>
-            Every network dependency should have sensible connection and response timeouts.
-            Depending on the use case, also consider retries, circuit breakers, bulkheads,
-            and fallback behavior.
-        </p>
+<p>
+    We use a simple Conventional Commits style:
+</p>
 
-        <p>
-            Be particularly careful with retries. Retrying a non-idempotent operation can
-            accidentally create duplicate payments, orders, or other side effects.
-        </p>
+<pre><code>type: short description</code></pre>
 
-        <h2>13. Make Shutdown Graceful</h2>
+<p>
+    Common types include:
+</p>
 
-        <p>
-            Production applications should be able to shut down without abruptly
-            terminating requests that are already being processed.
-        </p>
+<ul>
+    <li><code>feat</code> — new functionality</li>
+    <li><code>fix</code> — bug fix</li>
+    <li><code>test</code> — test changes</li>
+    <li><code>refactor</code> — code restructuring</li>
+    <li><code>build</code> — build or dependency changes</li>
+    <li><code>docs</code> — documentation changes</li>
+    <li><code>chore</code> — maintenance</li>
+</ul>
 
-        <pre><code>server:
-  shutdown: graceful</code></pre>
+<p>
+    Examples:
+</p>
 
-        <p>
-            In Kubernetes or another orchestrated environment, combine graceful shutdown
-            with appropriate readiness and termination settings so that traffic stops
-            reaching an instance before it exits.
-        </p>
+<pre><code>feat: add user registration
+fix: handle duplicate email
+test: add user registration tests
+build: add checkstyle validation
+docs: update project setup
+refactor: simplify validation</code></pre>
 
-        <h2>14. Containerize the Application</h2>
+<h3>Focused Commits</h3>
 
-        <p>
-            A Spring Boot service can be packaged as a container image and deployed through
-            Docker, Kubernetes, ECS, or another container platform.
-        </p>
+<p>
+    Avoid putting unrelated changes into one commit.
+</p>
 
-        <p>
-            Keep the production image minimal and run the application as a non-root user
-            where practical.
-        </p>
+<p>
+    Prefer:
+</p>
 
-        <p>
-            Also consider reproducible builds, image vulnerability scanning, and a process
-            for regularly rebuilding images when the base image or dependencies receive
-            security updates.
-        </p>
+<pre><code>build: add checkstyle validation
+build: enforce java formatting
+docs: document development workflow</code></pre>
 
-        <h2>15. Do Not Hard-Code Environment Assumptions</h2>
+<p>
+    instead of:
+</p>
 
-        <p>
-            The same application artifact should ideally move through environments while
-            environment-specific configuration is supplied externally.
-        </p>
+<pre><code>feat: complete project</code></pre>
 
-        <p>
-            Avoid code such as:
-        </p>
+<p>
+    Focused commits make the history easier to review, understand, and revert.
+</p>
 
-        <pre><code>if (environment.equals("production")) {
-    // completely different application behavior
-}</code></pre>
+<h2>15. Branch Strategy</h2>
 
-        <p>
-            Environment-specific behavior should generally be expressed through explicit
-            configuration or deployment mechanisms rather than scattered throughout the
-            business code.
-        </p>
+<p>
+    <strong>Recommended:</strong> Use a simple branch strategy.
+</p>
 
-        <h2>16. Add Automated Tests</h2>
+<p>
+    Keep <code>main</code> as the stable branch.
+</p>
 
-        <p>
-            A production-grade setup needs more than unit tests.
-        </p>
+<pre><code>main</code></pre>
 
-        <ul>
-            <li>Unit tests for business logic</li>
-            <li>Integration tests for important infrastructure interactions</li>
-            <li>API/controller tests</li>
-            <li>Database tests</li>
-            <li>Security tests</li>
-            <li>End-to-end tests for critical workflows</li>
-        </ul>
+<p>
+    Feature branches:
+</p>
 
-        <p>
-            Testcontainers is particularly useful when integration tests need real
-            infrastructure such as PostgreSQL, Redis, Kafka, or other services.
-        </p>
+<pre><code>feature/user-registration
+feature/authentication</code></pre>
 
-        <h2>17. Add Dependency and Container Security Scanning</h2>
+<p>
+    Bug-fix branches:
+</p>
 
-        <p>
-            Production readiness also means knowing what your application is built from.
-            Scan dependencies and container images for known vulnerabilities.
-        </p>
+<pre><code>fix/invalid-email-validation
+fix/database-timeout</code></pre>
 
-        <p>
-            Keep dependencies updated and remove libraries that are no longer required.
-            Automated dependency update tools can help reduce the maintenance burden.
-        </p>
+<p>
+    GitFlow is not needed for this project. Additional branches such as
+    <code>develop</code>, <code>release</code>, and <code>hotfix</code> would add process
+    without solving a current problem.
+</p>
 
-        <h2>18. Use CI/CD</h2>
+<h2>16. Useful Git Commands</h2>
 
-        <p>
-            A reliable deployment pipeline should automatically perform at least:
-        </p>
+<p>
+    Check repository status:
+</p>
 
-        <ol>
-            <li>Compile the application</li>
-            <li>Run tests</li>
-            <li>Perform static analysis</li>
-            <li>Check dependencies</li>
-            <li>Build the production artifact or container image</li>
-            <li>Run security checks</li>
-            <li>Deploy to the target environment</li>
-        </ol>
+<pre><code>git status</code></pre>
 
-        <p>
-            Production deployments should be repeatable. If deploying the same version
-            requires someone to manually copy files and execute commands, the process is
-            difficult to audit and reproduce.
-        </p>
+<p>
+    Shows modified, staged, deleted, and untracked files.
+</p>
 
-        <h2>19. Have a Rollback Strategy</h2>
+<p>
+    Review changes:
+</p>
 
-        <p>
-            Deployment is only half of the problem. You also need a plan for when the
-            deployment goes wrong.
-        </p>
+<pre><code>git diff</code></pre>
 
-        <p>
-            Depending on the architecture, consider rolling deployments, blue-green
-            deployments, or canary releases.
-        </p>
+<p>
+    Shows unstaged changes.
+</p>
 
-        <p>
-            Database migrations require particular care because application rollback and
-            database rollback are not always the same operation.
-        </p>
+<p>
+    View commit history:
+</p>
 
-        <h2>20. Production Checklist</h2>
+<pre><code>git log --oneline</code></pre>
 
-        <p>
-            Before calling a Spring Boot application production-ready, I would verify:
-        </p>
+<p>
+    Shows a compact commit history.
+</p>
 
-        <ul>
-            <li>✓ Supported Java and Spring Boot versions</li>
-            <li>✓ Externalized configuration</li>
-            <li>✓ Secrets stored outside source control</li>
-            <li>✓ Database migrations enabled</li>
-            <li>✓ Hibernate schema changes disabled in production</li>
-            <li>✓ Authentication and authorization configured</li>
-            <li>✓ Request validation enabled</li>
-            <li>✓ Consistent API error responses</li>
-            <li>✓ Actuator health checks configured</li>
-            <li>✓ Metrics available</li>
-            <li>✓ Centralized and structured logging</li>
-            <li>✓ Distributed tracing where required</li>
-            <li>✓ Database connection pool tuned based on measurements</li>
-            <li>✓ External-service timeouts configured</li>
-            <li>✓ Graceful shutdown enabled</li>
-            <li>✓ Automated tests running in CI</li>
-            <li>✓ Dependency and container vulnerability scanning</li>
-            <li>✓ Container image runs without unnecessary privileges</li>
-            <li>✓ Automated deployment pipeline</li>
-            <li>✓ Rollback strategy</li>
-            <li>✓ Monitoring and alerting</li>
-        </ul>
+<p>
+    Create a feature branch:
+</p>
 
-        <h2>Final Thoughts</h2>
+<pre><code>git checkout -b feature/my-feature</code></pre>
 
-        <p>
-            Production-grade Spring Boot is not about adding every possible library or
-            copying a large configuration file from another project.
-        </p>
+<p>
+    Push a feature branch:
+</p>
 
-        <p>
-            It is about making the application <strong>observable, secure, resilient,
-            testable, deployable, and recoverable</strong>.
-        </p>
+<pre><code>git push -u origin feature/my-feature</code></pre>
 
-        <p>
-            Start with the basics—configuration, security, database migrations,
-            health checks, logging, metrics, testing, and CI/CD. Then add resilience
-            patterns and infrastructure-specific optimizations based on actual
-            requirements and production measurements.
-        </p>
+<p>
+    Create a commit:
+</p>
 
-        <p>
-            The best production setup is not the most complicated one. It is the one
-            that makes failures visible, deployments repeatable, and operational
-            problems recoverable.
-        </p>
-    `,
+<pre><code>git add .
+git commit -m "feat: add my feature"</code></pre>
+
+<h2>17. The Development Workflow</h2>
+
+<p>
+    The development workflow for the project is intentionally simple:
+</p>
+
+<pre><code>Create or switch to a feature branch
+    ↓
+Implement the change
+    ↓
+Format the code
+    ↓
+Run tests
+    ↓
+Run full verification
+    ↓
+Review changes
+    ↓
+Create a focused commit
+    ↓
+Push the branch
+    ↓
+Create a Pull Request</code></pre>
+
+<p>
+    Before committing Java changes:
+</p>
+
+<pre><code>./mvnw spotless:apply</code></pre>
+
+<p>
+    Run tests:
+</p>
+
+<pre><code>./mvnw test</code></pre>
+
+<p>
+    Run the complete verification:
+</p>
+
+<pre><code>./mvnw clean verify</code></pre>
+
+<h2>18. What We Did Not Add</h2>
+
+<p>
+    A good project foundation is not the one with the most tools.
+</p>
+
+<p>
+    Several commonly used technologies are deliberately not part of this phase.
+</p>
+
+<h3>PMD</h3>
+
+<p>
+    <strong>Not Needed:</strong> Additional static analysis is not currently justified.
+</p>
+
+<h3>SpotBugs</h3>
+
+<p>
+    <strong>Not Needed:</strong> Another static-analysis layer would add complexity
+    without a demonstrated requirement.
+</p>
+
+<h3>SonarQube</h3>
+
+<p>
+    <strong>Not Needed:</strong> A centralized code-quality platform is unnecessary
+    for this simple project.
+</p>
+
+<h3>Pre-commit Framework</h3>
+
+<p>
+    <strong>Optional:</strong> A pre-commit framework can be useful for teams that need
+    mandatory local checks, but Maven already provides the project's main verification
+    command.
+</p>
+
+<h3>Spring Profiles</h3>
+
+<p>
+    <strong>Not Needed Yet:</strong> There is not enough environment-specific
+    configuration to justify multiple profiles at this stage.
+</p>
+
+<h3>Docker</h3>
+
+<p>
+    <strong>Not Needed Yet:</strong> Containerization belongs to a later phase.
+</p>
+
+<h3>Database</h3>
+
+<p>
+    <strong>Not Needed Yet:</strong> Database configuration belongs to Phase 2.
+</p>
+
+<h2>19. Final Verification</h2>
+
+<p>
+    Before considering the foundation complete, verify the project using the following
+    commands.
+</p>
+
+<h3>Run Tests</h3>
+
+<pre><code>./mvnw test</code></pre>
+
+<h3>Check Formatting</h3>
+
+<pre><code>./mvnw spotless:check</code></pre>
+
+<h3>Run Checkstyle</h3>
+
+<pre><code>./mvnw checkstyle:check</code></pre>
+
+<h3>Run the Full Build</h3>
+
+<pre><code>./mvnw clean verify</code></pre>
+
+<h3>Start the Application</h3>
+
+<pre><code>./mvnw spring-boot:run</code></pre>
+
+<p>
+    The application should start without errors.
+</p>
+
+<h2>20. Phase 1 Checklist</h2>
+
+<ul>
+    <li>✓ Project generated with Spring Initializr</li>
+    <li>✓ Java 21 selected</li>
+    <li>✓ Spring Boot 4.1.1 selected</li>
+    <li>✓ Maven selected</li>
+    <li>✓ Maven Wrapper available</li>
+    <li>✓ Application configuration moved to YAML</li>
+    <li>✓ External configuration approach established</li>
+    <li>✓ Secrets excluded from source control</li>
+    <li>✓ .gitignore configured</li>
+    <li>✓ Checkstyle configured</li>
+    <li>✓ Spotless configured</li>
+    <li>✓ Dependency vulnerability scanning documented</li>
+    <li>✓ Dependency update strategy documented</li>
+    <li>✓ Basic tests configured</li>
+    <li>✓ Git conventions established</li>
+    <li>✓ Branch strategy established</li>
+    <li>✓ Local development workflow established</li>
+    <li>✓ Maven verification workflow established</li>
+</ul>
+
+<h2>21. Git Commits for Phase 1</h2>
+
+<p>
+    The changes should be committed at logical milestones rather than as one huge
+    commit.
+</p>
+
+<pre><code>chore: establish project foundation
+build: add checkstyle validation
+build: enforce java formatting
+build: add dependency vulnerability scanning
+docs: document development workflow</code></pre>
+
+<p>
+    If a particular step does not change any files, there is no reason to create an
+    empty commit.
+</p>
+
+<h2>Conclusion</h2>
+
+<p>
+    A clean Spring Boot project foundation is about making good decisions early rather
+    than adding as many technologies as possible.
+</p>
+
+<p>
+    We started with Spring Initializr and a minimal Maven project, then introduced
+    configuration management, secret protection, code-quality checks, formatting,
+    dependency security, testing, and Git conventions.
+</p>
+
+<p>
+    Notice what we did not do: we did not add a database, security framework, Docker,
+    Kubernetes, distributed tracing, or a large collection of static-analysis tools.
+</p>
+
+<p>
+    Those technologies may be valuable later, but they should be introduced when the
+    application actually needs them.
+</p>
+
+<p>
+    This is the principle we will continue throughout the project:
+    <strong>add the simplest tool that solves the actual problem.</strong>
+</p>
+
+<p>
+    With the foundation complete, the next phase can focus on the database without
+    mixing unrelated concerns into the initial setup.
+</p>
+`,
 });
-

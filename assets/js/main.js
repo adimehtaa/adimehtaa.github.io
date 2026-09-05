@@ -15,6 +15,8 @@ const ICONS = {
     arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
     rss: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5" cy="19" r="1.5" fill="currentColor" stroke="none"/><path d="M4 10a10 10 0 0 1 10 10"/><path d="M4 4a16 16 0 0 1 16 16"/></svg>`,
     calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M7 3.5v3M17 3.5v3M3.5 9h17"/></svg>`,
+    copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>`,
+    check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m5 12 4 4L19 6"/></svg>`,
 };
 
 function initTheme() {
@@ -339,4 +341,37 @@ initLightbox();
 
 function mount(id, html) {
     document.getElementById(id).innerHTML = html;
+}
+
+function addCodeCopyButtons(container) {
+    if (!container) return;
+    const blocks = container.querySelectorAll("pre");
+
+    blocks.forEach((pre) => {
+        if (pre.querySelector(".copy-btn")) return; // already added
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.innerHTML = ICONS.copy;
+        btn.setAttribute("aria-label", "Copy code");
+        btn.setAttribute("title", "Copy code");
+
+        btn.addEventListener("click", async () => {
+            const code = pre.querySelector("code")?.innerText ?? pre.innerText;
+            try {
+                await navigator.clipboard.writeText(code);
+                btn.innerHTML = ICONS.check;
+                btn.classList.add("copied");
+            } catch {
+                btn.innerHTML = ICONS.copy;
+            }
+            setTimeout(() => {
+                btn.innerHTML = ICONS.copy;
+                btn.classList.remove("copied");
+            }, 1500);
+        });
+
+        pre.appendChild(btn);
+    });
 }
